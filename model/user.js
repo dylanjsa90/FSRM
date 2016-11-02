@@ -1,7 +1,7 @@
 'use strict';
 
 const mongoose = require('mongoose');
-const league = require('./league');
+const League = require('./league');
 
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -11,7 +11,7 @@ let userSchema = mongoose.Schema({
   name: {type: String, required: true},
   username: {type: String, required: true, unique: true},
   password: {type: String, required: true},
-  leagues: [league]
+  leagues: [League]
 
 });
 
@@ -42,4 +42,29 @@ userSchema.methods.comparePassword = function(password) {
   });
 };
 
+userSchema.methods.addLeague = function(data) {
+  let result;
+  return new Promise((resolve, reject) => {
+    if (!data.name || !data.sports || !data.dues) return reject(createError(400, 'Required fields missing'));
+    (new League(data)).save().then(league => {
+      result = league;
+      this.leagues.push(league);
+      this.save();
+      resolve(result);
+    }, createError(404, 'Not Found'));
+  });
+};
+
+userSchema.methods.removeLeague = function(leagueId) {
+  return new Promise((resolve, reject) => {
+    this.leagues.filter(value => {
+      if (value === leagueId) return false;
+      return true;
+    });
+    this.save().then(() => {
+      return League.findByIdAndRemove(leagueId);
+    }).then(league => resolve(league)).catch(reject)
+  
+  });
+};
 module.exports = mongoose.model('User', userSchema);
