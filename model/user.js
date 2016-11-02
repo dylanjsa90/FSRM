@@ -3,6 +3,10 @@
 const mongoose = require('mongoose');
 const league = require('./league');
 
+const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
+const createError = require('http-errors');
+
 let userSchema = mongoose.Schema({
   name: {type: String, required: true},
   username: {type: String, required: true, unique: true},
